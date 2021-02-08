@@ -34,13 +34,11 @@ class Auth extends CI_Controller
             // User benar dan aktif
             if ($user['is_active'] == 1) {
                 // cek password
-                if (password_verify($password, $user['password'])) {
+                if ($password == $user['password']) {
                     $data = [
                         'email' => $user['email'],
-                        'role_id' => $user['role_id']
 
                     ];
-                    var_dump($data);
                     $this->session->set_userdata($data);
                     redirect('user');
                 } else {
@@ -92,18 +90,35 @@ class Auth extends CI_Controller
                 'image' => 'default.jpg',
                 // 'password' => password_hash($this->input->post('password1'), true),
                 'password' => htmlspecialchars($this->input->post('password1', true)),
-                'role_id' => 2,
                 'is_active' => 1,
                 'date_created' => time()
             ];
-
-            $this->db->insert('user', $data);
-            $this->session->set_flashdata(
-                'message',
-                '<div class="alert alert-success" role="alert">
-                Succes created account! Please Login</div>'
-            );
             redirect('auth');
+        }
+    }
+
+    public function logout()
+    {
+        $this->session->unset_userdata('email');
+
+        $this->session->set_flashdata(
+            'message',
+            '<div class="alert alert-success" role="alert">
+            You have been logged out!</div>'
+        );
+        redirect('auth');
+    }
+
+    public function forget()
+    {
+        $this->form_validation->set_rules('email', 'Email', 'required|trim|valid_email|is_unique[user.email]');
+
+        if ($this->form_validation->run() == false) {
+            $data['title'] = 'Forget';
+            $this->load->view('templates/auth_header', $data);
+            // untuk memanggil view login
+            $this->load->view('auth/forget');
+            $this->load->view('templates/auth_footer');
         }
     }
 }
